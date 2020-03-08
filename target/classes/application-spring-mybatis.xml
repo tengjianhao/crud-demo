@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!--1. 解析配置文件-->
+    <context:property-placeholder location="classpath:db.properties" />
+
+
+    <!--2. 数据源配置-->
+    <bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource" >
+        <property name="driverClassName" value="${driver}" />
+        <property name="url" value="${url}" />
+        <property name="username" value="${user}" />
+        <property name="password" value="${pwd}" />
+
+        <property name="initialSize" value="${initSize}" />
+        <property name="maxActive" value="${maxSize}" />
+        <property name="minIdle" value="${minSize}" />
+    </bean>
+
+
+    <!--3. 获取MyBatisSqlSessionFactory工厂  分页-->
+    <!--<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        &lt;!&ndash;1. 数据源&ndash;&gt;
+        <property name="dataSource" ref="druidDataSource" />
+        &lt;!&ndash;2. mapper.xml 文件所在位置&ndash;&gt;
+        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml" />
+        &lt;!&ndash;3. 分页&ndash;&gt;
+        <property name="plugins">
+            <array>
+                <bean class="com.github.pagehelper.PageInterceptor" />
+            </array>
+        </property>
+    </bean>-->
+    <bean id="sqlSessionFactory" class="com.baomidou.mybatisplus.extension.spring.MybatisSqlSessionFactoryBean">
+        <property name="dataSource" ref="druidDataSource"/>
+        <property name="mapperLocations" value="classpath:mapper/*Mapper.xml" />
+        <property name="plugins">
+            <array>
+                <bean class="com.baomidou.mybatisplus.extension.plugins.PaginationInterceptor" />
+            </array>
+        </property>
+    </bean>
+
+    <!--4. 配置Mapper 扫描-->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer" >
+        <!--要扫描的接口所在的包-->
+        <property name="basePackage" value="org.tjh.MyBatisPlus.mapper" />
+        <!--sqlSessionFactory-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+    </bean>
+
+
+    <!--5. 事务管理-->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager" >
+        <property name="dataSource" ref="druidDataSource" />
+    </bean>
+
+    <!--开启使用注解来完成事务管理-->
+    <tx:annotation-driven transaction-manager="transactionManager" />
+
+    <!--开启注解扫描-->
+    <context:component-scan base-package="org.tjh.MyBatisPlus" />
+</beans>
